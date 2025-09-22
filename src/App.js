@@ -1,24 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import Login from "./pages/Login";
+import RunLogger from "./pages/RunLogger";
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [userId, setUserId] = useState("");
+
+  const handleLogin = (email) => {
+    setUserId(email); // ✅ save logged-in email
+    setLoggedIn(true);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      {loggedIn ? (
+        <RunLogger userId={userId} /> // ✅ pass email
+      ) : (
+        <Login onLogin={handleLogin} />
+      )}
+    </>
   );
 }
 
