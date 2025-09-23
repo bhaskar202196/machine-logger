@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbxcxufsofVM8T-OW64K7PAjTLo0WS6o7TYI_84HVaT-rnN3mH3izQRkNP592mvtz84/exec";
 
-function Login({ onLogin }) {
-  const [userId, setUserId] = useState(""); // ✅ use camelCase consistently
+function Login() {
+  const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
+
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    if (sessionStorage.getItem("userId")) {
+      navigate("/logger", { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,19 +26,31 @@ function Login({ onLogin }) {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "text/plain" }, // ✅ required for Apps Script
-        body: JSON.stringify({ action: "login", userId, password }), // ✅ fixed key
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "login", userId, password }),
       });
 
       const data = await res.json();
+      console.log("Login API response:", data); // ✅ debug
 
       if (data.success) {
-        setSuccess(true);
-        if (onLogin) onLogin(userId); // ✅ send logged-in email back to App.js
+        sessionStorage.setItem("userId", userId);
+        sessionStorage.setItem("name", data.name || "User");
+        sessionStorage.setItem("department", data.department || "");
+
+        console.log("Session stored:", {
+          userId: sessionStorage.getItem("userId"),
+          name: sessionStorage.getItem("name"),
+          dept: sessionStorage.getItem("department"),
+        });
+
+        window.onUserLogin?.(); // ✅ Trigger App.js
+
+        navigate("/logger", { replace: true });
       } else {
         setError(data.message || "Invalid credentials.");
       }
-    } catch {
+    } catch (err) {
       setError("Network or server error.");
     }
 
@@ -71,11 +91,6 @@ function Login({ onLogin }) {
 
         {error && (
           <div className="mb-2 text-sm text-red-600 text-center">{error}</div>
-        )}
-        {success && (
-          <div className="mb-2 text-sm text-green-600 text-center">
-            Login successful!
-          </div>
         )}
 
         <button
