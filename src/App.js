@@ -10,24 +10,32 @@ import RunLogger from "./pages/RunLogger";
 // import Profile from "./pages/Profile"; // ignored as per earlier discussion
 import AppLayout from "./layouts/AppLayout";
 
-const userId = sessionStorage.getItem("userId");
-
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!sessionStorage.getItem("userId")
   );
-
+  const [userId, setUserId] = useState(sessionStorage.getItem("userId"));
   useEffect(() => {
     const handleStorageChange = () => {
-      setIsLoggedIn(!!sessionStorage.getItem("userId"));
+      const storedId = sessionStorage.getItem("userId");
+      setIsLoggedIn(!!storedId);
+      setUserId(storedId);
     };
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   useEffect(() => {
-    window.onUserLogin = () => setIsLoggedIn(true);
-    window.onUserLogout = () => setIsLoggedIn(false);
+    window.onUserLogin = () => {
+      const storedId = sessionStorage.getItem("userId");
+      setIsLoggedIn(true);
+      setUserId(storedId);
+    };
+    window.onUserLogout = () => {
+      setIsLoggedIn(false);
+      setUserId(null);
+    };
     return () => {
       window.onUserLogin = null;
       window.onUserLogout = null;
